@@ -200,8 +200,9 @@ class Episode(dict):
         seasno = int(self.get(u'seasonnumber', 0))
         epno = int(self.get(u'episodenumber', 0))
         epname = self.get(u'episodename')
+        epoverview = self.get(u'episodeoverview')
         if epname is not None:
-            return "<Episode %02dx%02d - %s>" % (seasno, epno, epname)
+            return "<Episode %02dx%02d - %s - %s>" % (seasno, epno, epname, epoverview)
         else:
             return "<Episode %02dx%02d>" % (seasno, epno)
 
@@ -524,7 +525,7 @@ class Tvdb:
                 raise tvdb_error(errormsg)
     #end _getetsrc
 
-    def _setItem(self, sid, seas, ep, attrib, value):
+    def _setItem(self, sid, seas, ep, epoverview, attrib, value):
         """Creates a new episode, creating Show(), Season() and
         Episode()s as required. Called by _getShowData to populate show
 
@@ -545,6 +546,9 @@ class Tvdb:
             self.shows[sid][seas] = Season(show = self.shows[sid])
         if ep not in self.shows[sid][seas]:
             self.shows[sid][seas][ep] = Episode(season = self.shows[sid][seas])
+        if epoverview not in self.shows[sid][seas][ep]:
+            self.shows[sid][seas][ep][epoverview] = Episode(season = self.shows[sid][seas][ep])
+        #self.shows[sid][seas][ep][ep_overview] = value
         self.shows[sid][seas][ep][attrib] = value
     #end _set_item
 
@@ -751,6 +755,8 @@ class Tvdb:
         for cur_ep in epsEt.findall("Episode"):
             seas_no = int(cur_ep.find('SeasonNumber').text)
             ep_no = int(cur_ep.find('EpisodeNumber').text)
+            epoverview = cur_ep.find('Overview').text
+            log().debug(epoverview)
             for cur_item in cur_ep.getchildren():
                 tag = cur_item.tag.lower()
                 value = cur_item.text
@@ -759,7 +765,7 @@ class Tvdb:
                         value = self.config['url_artworkPrefix'] % (value)
                     else:
                         value = self._cleanData(value)
-                self._setItem(sid, seas_no, ep_no, tag, value)
+                self._setItem(sid, seas_no, ep_no, epoverview, tag, value)
         #end for cur_ep
     #end _geEps
 
@@ -814,6 +820,8 @@ def main():
     tvdb_instance = Tvdb(interactive=True, cache=False)
     print tvdb_instance['Lost']['seriesname']
     print tvdb_instance['Lost'][1][4]['episodename']
+    print tvdb_instance['Lost'][1][4]['overview']
+    
 
 if __name__ == '__main__':
     main()
