@@ -26,19 +26,17 @@ class VideoEasier():
     def on_filechooserbutton_current_folder_changed(self, widget, data=None):
         """Clear and refresh the TreeViews"""
         os.chdir(self.filechooserbutton.get_current_folder())
-        #print os.getcwd()
         self.liststoreDir.clear()
         self.liststoreFile.clear()
-        #self.treeviewDir.freeze_child_notify()
-        #self.treeviewDir.set_model(None)
         #self.labelMaskRoot.set_text(self.filechooserbutton.get_current_folder() + "/")
         dirList=os.listdir(os.getcwd())
         dircontents = []
-        dircontents.append(['..'])
+        #dircontents.append(['..'])
+        #dircontents.append(['.'])
         for item in dirList:
             if item[0] != '.':
                 if os.path.isdir(item):
-                    dircontents.append(['/'+item])
+                    dircontents.append([item])
         dircontents.sort()
         for act in dircontents:
             self.liststoreDir.append([act[0]])
@@ -75,16 +73,17 @@ class VideoEasier():
         self.liststoreFile.clear()
 
         for item in os.listdir(self.file_fullpath):
-            if os.path.isfile(os.path.join(self.file_fullpath,item)):
-                self.liststoreFile.append([item])
+            if item[0] != '.':
+                if os.path.isfile(os.path.join(self.file_fullpath,item)):
+                    self.liststoreFile.append([item])
      
     def on_treeviewDir_row_activated(self, widget, row, col):
-        if widget.get_model()[row][0] == "..":
-            os.chdir(os.pardir)
-            self.filechooserbutton.set_current_folder(os.getcwd())
+        #if widget.get_model()[row][0] == "..":
+           # os.chdir(os.pardir)
+            #self.filechooserbutton.set_current_folder(os.getcwd())
 
-        else:
-            os.chdir(os.getcwd()+widget.get_model()[row][0])
+        #else:
+            os.chdir(os.getcwd()+"/"+widget.get_model()[row][0])
             self.filechooserbutton.set_current_folder(os.getcwd())
 
         
@@ -140,7 +139,8 @@ class VideoEasier():
         NewName = s + '.' + self.entryTitle.get_text().replace(' ','.') + extension
         return NewName.replace(' ','') 
         
-        
+    def on_buttonBack_clicked(self, widget, data=None):  
+        self.filechooserbutton.set_current_folder(os.pardir)
 
     def on_buttonTVDB_clicked(self, widget, data=None):
         """Whe the TVDB button is clicked we create the tvdb object, fill the title entry, fill the overview /
@@ -150,7 +150,6 @@ class VideoEasier():
         self.ep_object = t[self.tv.ep_showname][self.tv.ep_season][self.tv.ep_number]
         self.ep_title = self.ep_object['episodename'].strip()
         self.entryTitle.set_text(self.ep_title)
-        #self.
         self.entryRename.set_text(self.getNewName())
 
         if self.checkbuttonBanner.get_active():
@@ -185,7 +184,6 @@ class VideoEasier():
     def resize_image2(self, widget, data=None):
         if  self.imageBanner.get_visible() == True:
             scale_factor = float(self.scrolledwindow3.get_allocation().width) / float(self.image_loader.get_pixbuf().get_width())
-            #self.imageBanner.set_from_pixbuf(self.image_loader.get_pixbuf().scale_simple(self.scrolledwindow3.get_allocation().width,int(self.image_loader.get_pixbuf().get_height() * scale_factor),gtk.gdk.INTERP_BILINEAR))
             self.imageBanner.set_from_pixbuf(self.image_loader.get_pixbuf().scale_simple(self.scrolledwindow3.get_allocation().width,int(self.image_loader.get_pixbuf().get_height() * scale_factor),gtk.gdk.INTERP_NEAREST))
 
         
@@ -219,9 +217,9 @@ class VideoEasier():
         builder.connect_signals(self)
 
         self.filechooserbutton.set_current_folder(dir)
-        os.chdir(dir)
+        #os.chdir(dir)
 
-        self.file_fullpath = dir
+        #self.file_fullpath = dir
         #for item in os.listdir(self.filechooserbutton.get_current_folder()):
             #if os.path.isfile(os.path.join(self.filechooserbutton.get_current_folder(),item)):
                 #self.treestoreFile.append(None, [item])     
