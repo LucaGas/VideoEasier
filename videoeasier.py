@@ -28,7 +28,7 @@ class VideoEasier():
         os.chdir(self.filechooserbutton.get_current_folder())
         self.liststoreDir.clear()
         self.liststoreFile.clear()
-        #self.labelMaskRoot.set_text(self.filechooserbutton.get_current_folder() + "/")
+        self.labelMaskRoot.set_text(self.filechooserbutton.get_current_folder() + "/")
         dirList=os.listdir(os.getcwd())
         dircontents = []
         #dircontents.append(['..'])
@@ -69,13 +69,14 @@ class VideoEasier():
            all the files found in fullpath"""       
         treeviewDir_model, treeviewDir_iter = self.treeviewDir.get_selection().get_selected()    
         self.file_fullpath = os.getcwd() + "/" + treeviewDir_model.get_value(treeviewDir_iter,0)
-
+        self.labelMaskRoot.set_text(self.file_fullpath + "/")
         self.liststoreFile.clear()
 
         for item in os.listdir(self.file_fullpath):
             if item[0] != '.':
                 if os.path.isfile(os.path.join(self.file_fullpath,item)):
                     self.liststoreFile.append([item])
+
      
     def on_treeviewDir_row_activated(self, widget, row, col):
         #if widget.get_model()[row][0] == "..":
