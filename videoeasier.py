@@ -25,7 +25,6 @@ class VideoEasier():
 
     def on_cellrenderertoggle_toggled(self, widget, row):
         iter = self.liststoreFile.get_iter(row)
-        print 
         if self.liststoreFile.get_value(iter, 0):
             self.liststoreFile.set_value(iter, 0,0)
         else:
@@ -123,7 +122,8 @@ class VideoEasier():
                         self.liststoreFile.append([1,0,item.name,item.name])
                     else:
                         if item.kind_checker() == "movie":
-                            self.liststoreFile.append([0,1,item.name,item.name])
+                            #self.liststoreFile.append([0,1,item.name,item.name])
+							pass
 
      
     def on_treeviewDir_row_activated(self, widget, row, col):
@@ -151,20 +151,22 @@ class VideoEasier():
 
         self.clear_Info_window ()
         self.scrolledwindowInfoPre.hide_all()
-
+            
         selection = self.treeviewFile.get_selection()
         tree_model, tree_iter = selection.get_selected()
         if tree_model.get_value(tree_iter,0):
-            self.scrolledwindowInfoMovie.hide_all()
+            #self.scrolledwindowInfoMovie.set_visible(False)
             self.tv = TVObject(tree_model.get_value(tree_iter,2))
             self.entryFilename.set_text(self.tv.clean_name)
             self.entryShowname.set_text(self.tv.ep_showname)
             self.entryEpisode.set_text(str(self.tv.ep_number))
             self.entrySeason.set_text(str(self.tv.ep_season))
-            self.scrolledwindowInfoTV.show_all()
-        else:
-            self.scrolledwindowInfoTV.hide_all()
-            self.scrolledwindowInfoMovie.show_all()
+            self.scrolledwindowInfoTV.set_visible(True)
+        #else:
+            #self.scrolledwindowInfoTV.hide_all()
+            #self.scrolledwindowInfoMovie.show_all()
+            #self.movie = Movie(tree_model.get_value(tree_iter,2))
+            #self.entryFilenameMovie.set_text(self.movie.name)
 
         #self.entryRename.set_text(self.entryFilename.get_text())
         self.change_entryMask()
@@ -248,14 +250,14 @@ class VideoEasier():
 
     def resize_image(self):
         """Resize the image based on the widget width, we create a scale factor from that to get the right height"""
-        scale_factor = float(self.scrolledwindowInfo.get_allocation().width) / float(self.image_loader.get_pixbuf().get_width())
-        self.imageBanner.set_from_pixbuf(self.image_loader.get_pixbuf().scale_simple(self.scrolledwindowInfo.get_allocation().width,int(self.image_loader.get_pixbuf().get_height() * scale_factor),gtk.gdk.INTERP_BILINEAR))
+        scale_factor = float(self.scrolledwindowInfoTV.get_allocation().width) / float(self.image_loader.get_pixbuf().get_width())
+        self.imageBanner.set_from_pixbuf(self.image_loader.get_pixbuf().scale_simple(self.scrolledwindowInfoTV.get_allocation().width,int(self.image_loader.get_pixbuf().get_height() * scale_factor),gtk.gdk.INTERP_BILINEAR))
         self.imageBanner.set_visible(True)
 
     def resize_image2(self, widget, data=None):
         if  self.imageBanner.get_visible() == True:
-            scale_factor = float(self.scrolledwindowInfo.get_allocation().width) / float(self.image_loader.get_pixbuf().get_width())
-            self.imageBanner.set_from_pixbuf(self.image_loader.get_pixbuf().scale_simple(self.scrolledwindowInfo.get_allocation().width,int(self.image_loader.get_pixbuf().get_height() * scale_factor),gtk.gdk.INTERP_NEAREST))
+            scale_factor = float(self.scrolledwindowInfoTV.get_allocation().width) / float(self.image_loader.get_pixbuf().get_width())
+            self.imageBanner.set_from_pixbuf(self.image_loader.get_pixbuf().scale_simple(self.scrolledwindowInfoTV.get_allocation().width,int(self.image_loader.get_pixbuf().get_height() * scale_factor),gtk.gdk.INTERP_NEAREST))
 
         
   
@@ -286,6 +288,8 @@ class VideoEasier():
         self.statusbar = builder.get_object("statusbar")
         self.checkbuttonBanner = builder.get_object("checkbuttonBanner")
         self.labelMaskRoot = builder.get_object("labelMaskRoot")
+
+        self.entryFilenameMovie = builder.get_object("entryFilenameMovie")
 
         builder.connect_signals(self)
 
@@ -373,6 +377,10 @@ class TVObject():
         #return (ep_showname, ep_number, ep_season, file)
         return ('', '', '', file)
 
+class Movie():
+    """class for tv object"""
+    def __init__(self,file):
+        self.name = file
 
 class File():
     """Generic class for file, does some job before deciding if it is a movie or tv file"""
