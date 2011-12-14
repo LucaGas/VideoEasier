@@ -2,22 +2,19 @@
 <interface>
   <requires lib="gtk+" version="2.24"/>
   <!-- interface-naming-policy project-wide -->
-  <object class="GtkListStore" id="liststoreDir">
-    <columns>
-      <!-- column-name DirName -->
-      <column type="gchararray"/>
-    </columns>
-  </object>
   <object class="GtkListStore" id="liststoreFile">
     <columns>
-      <!-- column-name FileName -->
+      <!-- column-name CheckBox -->
+      <column type="gboolean"/>
+      <!-- column-name Oldname -->
+      <column type="gchararray"/>
+      <!-- column-name NewName -->
       <column type="gchararray"/>
     </columns>
   </object>
   <object class="GtkWindow" id="mainWindow">
+    <property name="height_request">300</property>
     <property name="can_focus">False</property>
-    <property name="default_width">1200</property>
-    <property name="default_height">600</property>
     <signal name="destroy" handler="on_mainWindow_destroy" swapped="no"/>
     <child>
       <object class="GtkVBox" id="vbox1">
@@ -56,14 +53,9 @@
               </packing>
             </child>
             <child>
-              <object class="GtkCheckButton" id="checkbuttonBanner">
-                <property name="label" translatable="yes">Banner</property>
+              <object class="GtkArrow" id="arrow1">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">False</property>
-                <property name="use_action_appearance">False</property>
-                <property name="active">True</property>
-                <property name="draw_indicator">True</property>
+                <property name="can_focus">False</property>
               </object>
               <packing>
                 <property name="expand">True</property>
@@ -126,8 +118,7 @@
                       <object class="GtkTreeView" id="treeviewDir">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
-                        <property name="model">liststoreDir</property>
-                        <property name="headers_clickable">False</property>
+                        <property name="model">treestoreDir</property>
                         <property name="search_column">0</property>
                         <signal name="cursor-changed" handler="on_treeviewDir_cursor_changed" swapped="no"/>
                         <signal name="row-activated" handler="on_treeviewDir_row_activated" swapped="no"/>
@@ -151,7 +142,7 @@
                   </object>
                   <packing>
                     <property name="resize">True</property>
-                    <property name="shrink">True</property>
+                    <property name="shrink">False</property>
                   </packing>
                 </child>
                 <child>
@@ -166,22 +157,40 @@
                         <property name="can_focus">True</property>
                         <property name="model">liststoreFile</property>
                         <property name="headers_clickable">False</property>
-                        <property name="reorderable">True</property>
                         <property name="search_column">0</property>
                         <signal name="cursor-changed" handler="on_treeviewFile_cursor_changed" swapped="no"/>
                         <child>
-                          <object class="GtkTreeViewColumn" id="treeviewcolumn1">
-                            <property name="sizing">autosize</property>
-                            <property name="title" translatable="yes">File</property>
+                          <object class="GtkTreeViewColumn" id="CheckBox">
+                            <property name="title" translatable="yes">Select</property>
                             <property name="clickable">True</property>
-                            <property name="reorderable">True</property>
-                            <property name="sort_indicator">True</property>
-                            <property name="sort_column_id">0</property>
                             <child>
-                              <object class="GtkCellRendererText" id="cellrenderertext2"/>
+                              <object class="GtkCellRendererToggle" id="cellrenderertoggle">
+                                <signal name="toggled" handler="on_cellrenderertoggle_toggled" swapped="no"/>
+                              </object>
                               <attributes>
-                                <attribute name="text">0</attribute>
-                                <attribute name="wrap-width">5</attribute>
+                                <attribute name="active">0</attribute>
+                              </attributes>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkTreeViewColumn" id="OldName">
+                            <property name="title" translatable="yes">Old Name</property>
+                            <child>
+                              <object class="GtkCellRendererText" id="cellrenderertext3"/>
+                              <attributes>
+                                <attribute name="text">1</attribute>
+                              </attributes>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkTreeViewColumn" id="NewName">
+                            <property name="title" translatable="yes">New Name</property>
+                            <child>
+                              <object class="GtkCellRendererText" id="cellrenderertext4"/>
+                              <attributes>
+                                <attribute name="text">2</attribute>
                               </attributes>
                             </child>
                           </object>
@@ -191,24 +200,23 @@
                   </object>
                   <packing>
                     <property name="resize">True</property>
-                    <property name="shrink">True</property>
+                    <property name="shrink">False</property>
                   </packing>
                 </child>
               </object>
               <packing>
                 <property name="resize">True</property>
-                <property name="shrink">True</property>
+                <property name="shrink">False</property>
               </packing>
             </child>
             <child>
-              <object class="GtkScrolledWindow" id="scrolledwindow3">
+              <object class="GtkScrolledWindow" id="scrolledwindowInfo">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="hscrollbar_policy">automatic</property>
                 <property name="vscrollbar_policy">automatic</property>
                 <child>
                   <object class="GtkViewport" id="viewport1">
-                    <property name="width_request">300</property>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <child>
@@ -390,7 +398,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkHBox" id="hbox1">
+                          <object class="GtkHBox" id="hbox6">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <child>
@@ -457,13 +465,40 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkButton" id="buttonTVDB">
-                            <property name="label" translatable="yes">TheTVDB</property>
+                          <object class="GtkHBox" id="hbox1">
                             <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="receives_default">True</property>
-                            <property name="use_action_appearance">False</property>
-                            <signal name="clicked" handler="on_buttonTVDB_clicked" swapped="no"/>
+                            <property name="can_focus">False</property>
+                            <child>
+                              <object class="GtkButton" id="buttonTVDB">
+                                <property name="label" translatable="yes">TheTVDB</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">True</property>
+                                <property name="use_action_appearance">False</property>
+                                <signal name="clicked" handler="on_buttonTVDB_clicked" swapped="no"/>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">True</property>
+                                <property name="position">0</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkCheckButton" id="checkbuttonBanner">
+                                <property name="label" translatable="yes">Banner</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">False</property>
+                                <property name="use_action_appearance">False</property>
+                                <property name="active">True</property>
+                                <property name="draw_indicator">True</property>
+                              </object>
+                              <packing>
+                                <property name="expand">True</property>
+                                <property name="fill">True</property>
+                                <property name="position">1</property>
+                              </packing>
+                            </child>
                           </object>
                           <packing>
                             <property name="expand">False</property>
@@ -476,6 +511,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="invisible_char">●</property>
+                            <property name="invisible_char_set">True</property>
                             <property name="primary_icon_activatable">False</property>
                             <property name="secondary_icon_activatable">False</property>
                             <property name="primary_icon_sensitive">True</property>
@@ -510,7 +546,7 @@
               </object>
               <packing>
                 <property name="resize">True</property>
-                <property name="shrink">True</property>
+                <property name="shrink">False</property>
               </packing>
             </child>
           </object>
@@ -536,4 +572,11 @@
     </child>
   </object>
   <object class="GtkTextBuffer" id="textbufferOverview"/>
+  <object class="GtkTextBuffer" id="textbufferOverview1"/>
+  <object class="GtkTreeStore" id="treestoreDir">
+    <columns>
+      <!-- column-name Dirname -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
 </interface>
