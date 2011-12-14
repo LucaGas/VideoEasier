@@ -42,6 +42,7 @@ class VideoEasier():
                 parents[os.path.join(dir, subdir)] = self.treestoreDir.append(parents.get(dir, None), [subdir])
 
     
+    
     def on_filechooserbutton_current_folder_changed(self, widget, data=None):
         """Clear and refresh the TreeViews"""
         os.chdir(self.filechooserbutton.get_current_folder())
@@ -117,8 +118,12 @@ class VideoEasier():
             if item[0] != '.':
                 if os.path.isfile(os.path.join(self.file_fullpath,item)):
                    #print item
-                    t=TVObject(item)
-                    self.liststoreFile.append([1,item,t.clean_name])
+                    item=File(item)
+                    if item.kind_checker() == "tv":
+                        self.liststoreFile.append([1,0,item.name,item.name])
+                    else:
+                        if item.kind_checker() == "movie":
+                            self.liststoreFile.append([0,1,item.name,item.name])
 
      
     def on_treeviewDir_row_activated(self, widget, row, col):
@@ -145,17 +150,34 @@ class VideoEasier():
         """When a file is selected with clear every entry first and the populate those entries with the TVObject attributes"""
 
         self.clear_Info_window ()
+        self.scrolledwindowInfoPre.hide_all()
 
         selection = self.treeviewFile.get_selection()
         tree_model, tree_iter = selection.get_selected()
-        self.tv = TVObject(tree_model.get_value(tree_iter,1))
-        self.entryFilename.set_text(self.tv.clean_name)
-        self.entryShowname.set_text(self.tv.ep_showname)
-        self.entryEpisode.set_text(str(self.tv.ep_number))
-        self.entrySeason.set_text(str(self.tv.ep_season))
+        if tree_model.get_value(tree_iter,0):
+            self.scrolledwindowInfoMovie.hide_all()
+            self.tv = TVObject(tree_model.get_value(tree_iter,2))
+            self.entryFilename.set_text(self.tv.clean_name)
+            self.entryShowname.set_text(self.tv.ep_showname)
+            self.entryEpisode.set_text(str(self.tv.ep_number))
+            self.entrySeason.set_text(str(self.tv.ep_season))
+            self.scrolledwindowInfoTV.show_all()
+        else:
+            self.scrolledwindowInfoTV.hide_all()
+            self.scrolledwindowInfoMovie.show_all()
+
         #self.entryRename.set_text(self.entryFilename.get_text())
         self.change_entryMask()
-       
+
+    def pon_treeviewFile_cursor_changed(self, widget, data=None):
+        """When a file is selected with clear every entry first and the populate those entries with the TVObject attributes"""
+
+        self.clear_Info_window ()
+
+        selection = self.treeviewFile.get_selection()
+        tree_model, tree_iter = selection.get_selected()
+        self.file = File(tree_model.get_value(tree_iter,2))
+
     def change_entryMask(self):
         if self.entryMask.get_text_length() > 0:
             entryMaskHelper = self.entryMask.get_text()
@@ -256,7 +278,9 @@ class VideoEasier():
         self.liststoreFile = builder.get_object("liststoreFile")
         self.treeviewFile = builder.get_object("treeviewFile")
         self.imageBanner = builder.get_object("imageBanner")
-        self.scrolledwindowInfo = builder.get_object("scrolledwindowInfo")
+        self.scrolledwindowInfoTV = builder.get_object("scrolledwindowInfoTV")
+        self.scrolledwindowInfoMovie = builder.get_object("scrolledwindowInfoMovie")
+        self.scrolledwindowInfoPre = builder.get_object("scrolledwindowInfoPre")
         self.textviewOverview = builder.get_object("textviewOverview")
         self.textbufferOverview = builder.get_object("textbufferOverview")
         self.statusbar = builder.get_object("statusbar")
@@ -348,6 +372,74 @@ class TVObject():
             #"non ce"
         #return (ep_showname, ep_number, ep_season, file)
         return ('', '', '', file)
+
+
+class File():
+    """Generic class for file, does some job before deciding if it is a movie or tv file"""
+    def clean(self):
+        """Replace underscores with spaces, capitalise words and remove
+        brackets and anything inbetween them.
+        """
+        s = self.name
+        file =  self.name
+        opening_brackets = ['(', '[', '<', '{']
+        closing_brackets = [')', ']', '>', '}']
+        for i in range(len(opening_brackets)):
+            b = opening_brackets[i]
+            c = closing_brackets[i]
+
+            while b in s:
+                start = s.find(b)
+                end = s.find(c) + 1
+
+                s = re.sub(re.escape(s[start:end]), '', s)
+
+        results = os.path.splitext(s)
+        extension = results[1]
+        s = results[0]
+
+        s = s.replace('_', ' ')
+        s = s.replace('.', ' ')
+        s = s.strip()
+        words = s.split(' ')
+        s = ' '.join([w.capitalize() for w in words])
+        s = s + extension
+        return s
+
+    def tv_checker(self):
+        """Extract info from the file"""
+    
+        results = re.search(r'[s|S](\d+)[e|E](\d+)', self.clean_name)
+        if results:
+            return "tv"
+
+        results = re.search(' (\d)(\d\d) ', self.clean_name)
+        if results:
+            return "tv"
+
+        results = re.search('(\d+)[Xx](\d\d)', self.clean_name)
+        if results:
+            return "tv"
+
+        #if (ep_showname, ep_number, ep_season, file):
+            #print "OK"
+        #else:
+            #"non ce"
+        #return (ep_showname, ep_number, ep_season, file)
+        return "movie"
+
+    def kind_checker(self):
+        extensions = ['avi','mkv','mp4','mpg','mpeg','mov','wmv']
+        for ext in extensions:
+            if os.path.splitext(self.clean_name)[1].strip('.').lower() == ext:
+                return self.tv_checker()
+        return "novideo"
+
+    def __init__(self,file):
+        self.name = file
+        self.clean_name = self.clean()
+        self.kind = self.kind_checker()
+        #print self.name, self.clean_name, self.ep_season
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
