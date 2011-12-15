@@ -227,7 +227,7 @@ class VideoEasier():
     def __init__(self,dir):
     
         builder = gtk.Builder()
-        builder.add_from_file("videoeasier.glade") 
+        builder.add_from_file(os.path.dirname(os.path.realpath(__file__)) + "/videoeasier.glade")
         
         self.window = builder.get_object("mainWindow")
         self.entryFilename = builder.get_object("entryFilename")
