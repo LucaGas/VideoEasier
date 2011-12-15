@@ -31,6 +31,35 @@ class VideoEasier():
             self.liststoreFile.set_value(iter, 0,1)
 
     def load_Dir(self,dir):
+        """Load dir and subdirs recursively"""
+        self.treestoreDir.clear()
+        dirList=os.listdir(os.getcwd())
+        dircontents = []
+        #dircontents.append(['..'])
+        for item in dirList:
+            if item[0] != '.':
+                if os.path.isdir(item):
+                    dircontents.append([item])
+        dircontents.sort()
+        for act in dircontents:
+            self.treestoreDir.append(None,act)
+    def load_File(self,dir):
+        self.labelMaskRoot.set_text(dir + "/")
+
+        for item in os.listdir(dir):
+            if item[0] != '.':
+                if os.path.isfile(os.path.join(dir,item)):
+                    item=File(item)
+                    if item.kind_checker() == "tv":
+                        self.liststoreFile.append([1,0,item.name,item.name])
+                    else:
+                        if item.kind_checker() == "movie":
+                            self.liststoreFile.append([0,0,item.name,item.name])
+                            pass
+
+        
+    def load_DirParent(self,dir):
+        """Load dirs , no recursion"""
         self.treestoreDir.clear()
         parents = {}
         for dir, dirs, files in os.walk(os.getcwd()):
@@ -41,34 +70,13 @@ class VideoEasier():
                 parents[os.path.join(dir, subdir)] = self.treestoreDir.append(parents.get(dir, None), [subdir])
 
     
-    
     def on_filechooserbutton_current_folder_changed(self, widget, data=None):
         """Clear and refresh the TreeViews"""
         os.chdir(self.filechooserbutton.get_current_folder())
         self.load_Dir(self.filechooserbutton.get_current_folder())
         self.liststoreFile.clear()
-        self.labelMaskRoot.set_text(os.getcwd())
-        #self.treeviewDir.freeze_child_notify()
-        #self.treeviewDir.set_model(None)
-        
-
-        #for item in os.listdir(os.getcwd()):
-            #if os.path.isfile(os.path.join(self.root_dir,item)):
-                #self.treestoreFile.append(None, [item])
-
-
-
-
-            
-        """ for item in os.listdir(os.getcwd()) :
-                if item[0] != '.':
-                    if os.path.isfile(item):
-                        t=TVObject(item)
-                        self.mytvlist.append(t)
-                        self.liststoreBatch.append([0,item, t.clean_name])
-        print self.mytvlist[0].clean_name"""
-
-                
+        self.load_File (self.filechooserbutton.get_current_folder())
+        self.labelMaskRoot.set_text(os.getcwd())       
     
     def push_message(self, message):
         buff = self.count
@@ -87,53 +95,19 @@ class VideoEasier():
             
            
     def on_treeviewDir_cursor_changed(self, widget, data=None):
-        """When a directory is selected we create the fullpath from the selection and populate treestoreFile with /
-           all the files found in fullpath"""       
-        treeviewDir_model, treeviewDir_iter = self.treeviewDir.get_selection().get_selected() 
-        treeviewDir_model, treeviewDir_iter2 = self.treeviewDir.get_selection().get_selected() 
+        treeviewDir_model, treeviewDir_iter = self.treeviewDir.get_selection().get_selected()
         self.file_fullpath = os.getcwd() + "/" + treeviewDir_model.get_value(treeviewDir_iter,0)
         
-        self.liststoreFile.clear() 
+        self.liststoreFile.clear()
         self.clear_Info_window ()
 
-        self.my_file_path = []
-        self.subdirs = ""
-        parents = {}
- 
-        while treeviewDir_model.iter_parent(treeviewDir_iter):
-               element = treeviewDir_model.get_value(treeviewDir_model.iter_parent(treeviewDir_iter), 0)
-               self.my_file_path.append(element)
-               treeviewDir_iter = treeviewDir_model.iter_parent(treeviewDir_iter)
-       
-        if self.my_file_path:
-            self.my_file_path.reverse()
-            for item in self.my_file_path[:]:
-                self.subdirs = self.subdirs + "/" + item
-         
-        self.file_fullpath = os.getcwd() + self.subdirs + "/" + treeviewDir_model.get_value(treeviewDir_iter2,0)
-        self.labelMaskRoot.set_text(self.file_fullpath + "/")
+        self.load_File (self.file_fullpath)
 
-        for item in os.listdir(self.file_fullpath):
-            if item[0] != '.':
-                if os.path.isfile(os.path.join(self.file_fullpath,item)):
-                   #print item
-                    item=File(item)
-                    if item.kind_checker() == "tv":
-                        self.liststoreFile.append([1,0,item.name,item.name])
-                    else:
-                        if item.kind_checker() == "movie":
-                            #self.liststoreFile.append([0,1,item.name,item.name])
-							pass
-
+        
      
     def on_treeviewDir_row_activated(self, widget, row, col):
-        #if widget.get_model()[row][0] == "..":
-           # os.chdir(os.pardir)
-            #self.filechooserbutton.set_current_folder(os.getcwd())
-
-        #else:
-            os.chdir(os.getcwd()+"/"+widget.get_model()[row][0])
-            self.filechooserbutton.set_current_folder(os.getcwd())
+        os.chdir(os.getcwd()+"/"+widget.get_model()[row][0])
+        self.filechooserbutton.set_current_folder(os.getcwd())
 
     def clear_Info_window(self):
         self.entryTitle.set_text('')
@@ -148,27 +122,18 @@ class VideoEasier():
     
     def on_treeviewFile_cursor_changed(self, widget, data=None):
         """When a file is selected with clear every entry first and the populate those entries with the TVObject attributes"""
-
         self.clear_Info_window ()
         self.scrolledwindowInfoPre.hide_all()
             
         selection = self.treeviewFile.get_selection()
         tree_model, tree_iter = selection.get_selected()
         if tree_model.get_value(tree_iter,0):
-            #self.scrolledwindowInfoMovie.set_visible(False)
             self.tv = TVObject(tree_model.get_value(tree_iter,2))
             self.entryFilename.set_text(self.tv.clean_name)
             self.entryShowname.set_text(self.tv.ep_showname)
             self.entryEpisode.set_text(str(self.tv.ep_number))
             self.entrySeason.set_text(str(self.tv.ep_season))
             self.scrolledwindowInfoTV.set_visible(True)
-        #else:
-            #self.scrolledwindowInfoTV.hide_all()
-            #self.scrolledwindowInfoMovie.show_all()
-            #self.movie = Movie(tree_model.get_value(tree_iter,2))
-            #self.entryFilenameMovie.set_text(self.movie.name)
-
-        #self.entryRename.set_text(self.entryFilename.get_text())
         self.change_entryMask()
 
     def pon_treeviewFile_cursor_changed(self, widget, data=None):
@@ -196,11 +161,6 @@ class VideoEasier():
             self.entryRename.set_text(self.entryFilename.get_text())
     def on_entryMask_changed(self, widget, data=None):
         self.change_entryMask()
-        
-
-
-
-
         self.imageBanner.set_visible(False)
         
     def getNewName(self):
@@ -211,6 +171,9 @@ class VideoEasier():
         NewName = s + '.' + self.entryTitle.get_text().replace(' ','.') + extension
         return NewName.replace(' ','') 
         
+    def on_buttonReset_clicked(self, widget, data=None):  
+        self.filechooserbutton.set_current_folder(os.getcwd ())
+
     def on_buttonBack_clicked(self, widget, data=None):  
         self.filechooserbutton.set_current_folder(os.pardir)
 
@@ -294,20 +257,14 @@ class VideoEasier():
         builder.connect_signals(self)
 
         self.filechooserbutton.set_current_folder(dir)
-        #os.chdir(dir)
 
-        #self.file_fullpath = dir
-        #for item in os.listdir(self.filechooserbutton.get_current_folder()):
-            #if os.path.isfile(os.path.join(self.filechooserbutton.get_current_folder(),item)):
-                #self.treestoreFile.append(None, [item])     
-            
 class TVObject():
     """class for tv object"""
     def __init__(self,file):
         self.name = file
         self.clean_name = self.clean().replace(' ','.')
         self.ep_showname, self.ep_number, self.ep_season, self.name = self.tv_parser(self.clean())
-        #print self.name, self.clean_name, self.ep_season
+
     
     def clean(self):
         """Replace underscores with spaces, capitalise words and remove
@@ -370,11 +327,7 @@ class TVObject():
             file = re.sub('\d+[Xx]\d\d', '^s^e', file)
             return tv_extractor(file)
 
-        #if (ep_showname, ep_number, ep_season, file):
-            #print "OK"
-        #else:
-            #"non ce"
-        #return (ep_showname, ep_number, ep_season, file)
+
         return ('', '', '', file)
 
 class Movie():
