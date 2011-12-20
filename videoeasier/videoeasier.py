@@ -43,15 +43,17 @@ class VideoEasier():
         dircontents.sort()
         for act in dircontents:
             self.treestoreDir.append(None,act)
+
     def load_File(self,dir):
         self.labelMaskRoot.set_text(dir + "/")
-
+        self.liststoreFile.clear()
         for item in os.listdir(dir):
             if item[0] != '.':
                 if os.path.isfile(os.path.join(dir,item)):
                     item=File(item)
                     if item.kind_checker() == "tv":
-                        self.liststoreFile.append([1,0,item.name,item.name])
+                        tv=TVObject(item.name + item.extension)
+                        self.liststoreFile.append([1,0,item.name+ item.extension,tv.clean_name])
                     else:
                         if item.kind_checker() == "movie":
                             self.liststoreFile.append([0,0,item.name,item.name])
@@ -98,7 +100,7 @@ class VideoEasier():
         treeviewDir_model, treeviewDir_iter = self.treeviewDir.get_selection().get_selected()
         self.file_fullpath = os.getcwd() + "/" + treeviewDir_model.get_value(treeviewDir_iter,0)
         
-        self.liststoreFile.clear()
+        
         self.clear_Info_window ()
 
         self.load_File (self.file_fullpath)
@@ -136,6 +138,7 @@ class VideoEasier():
             self.scrolledwindowInfoTV.set_visible(True)
         self.change_entryMask()
 
+
     def pon_treeviewFile_cursor_changed(self, widget, data=None):
         """When a file is selected with clear every entry first and the populate those entries with the TVObject attributes"""
 
@@ -148,15 +151,28 @@ class VideoEasier():
     def change_entryMask(self):
         if self.entryMask.get_text_length() > 0:
             entryMaskHelper = self.entryMask.get_text()
-            self.subs=[['%t',''],
-            ['%e', self.tv.ep_number],
-            ['%n',self.tv.ep_season],
-            ['%f',self.tv.name],
-            ['%s',self.tv.ep_showname]
-            ]
+            filename = os.path.splitext(self.entryFilename.get_text())[0]
+            ext = os.path.splitext(self.entryFilename.get_text())[-1]
+            if self.entryTitle.get_text():
+                self.subs=[['%t',"-" + self.entryTitle.get_text()],
+                ['%e', self.entryEpisode.get_text()],
+                ['%n',self.entryShowname.get_text()],
+                ['%f',filename],
+                ['%s',self.entrySeason.get_text()]
+                ]
+            else:
+                self.subs=[['%t',''],
+                ['%e', self.entryEpisode.get_text()],
+                ['%n',self.entryShowname.get_text()],
+                ['%f',filename],
+                ['%s',self.entrySeason.get_text()]
+                ]
+            
             for item in self.subs:
-               entryMaskHelper  = re.sub(item[0],item[1],entryMaskHelper)
-               self.entryRename.set_text(entryMaskHelper)
+                entryMaskHelper  = re.sub(item[0],item[1],entryMaskHelper)
+            print  filename
+            print ext
+            self.entryRename.set_text(entryMaskHelper + ext)
         else:
             self.entryRename.set_text(self.entryFilename.get_text())
     def on_entryMask_changed(self, widget, data=None):
@@ -185,7 +201,7 @@ class VideoEasier():
         self.ep_object = t[self.tv.ep_showname][self.tv.ep_season][self.tv.ep_number]
         self.ep_title = self.ep_object['episodename'].strip()
         self.entryTitle.set_text(self.ep_title)
-        self.entryRename.set_text(self.getNewName())
+        self.change_entryMask ()
 
         if self.checkbuttonBanner.get_active():
             d = t[self.tv.ep_showname]['_banners']['series']['graphical'].values()[0].items()
@@ -206,10 +222,11 @@ class VideoEasier():
 
         selection = self.treeviewFile.get_selection()
         tree_model, tree_iter = selection.get_selected()
-        src = self.file_fullpath + '/' + tree_model.get_value(tree_iter,0)
+        src = self.file_fullpath + '/' + tree_model.get_value(tree_iter,2)
         dst = self.file_fullpath + '/' + self.entryRename.get_text()
         #shutil.move(src, dst)
-        print src,dst   
+        print src,dst
+        self.load_File (self.file_fullpath)
 
     def resize_image(self):
         """Resize the image based on the widget width, we create a scale factor from that to get the right height"""
@@ -253,17 +270,19 @@ class VideoEasier():
         self.labelMaskRoot = builder.get_object("labelMaskRoot")
 
         self.entryFilenameMovie = builder.get_object("entryFilenameMovie")
-
         builder.connect_signals(self)
 
         self.filechooserbutton.set_current_folder(dir)
-
+        self.entryMask.set_text("%n/Season %s/%f%t")
 class TVObject():
     """class for tv object"""
     def __init__(self,file):
         self.name = file
         self.clean_name = self.clean().replace(' ','.')
         self.ep_showname, self.ep_number, self.ep_season, self.name = self.tv_parser(self.clean())
+        #self.clean_name_noext = os.path.splitext(self.clean_name)[:-1]
+        #print self.clean_name_noext
+        #self.newname = self.getNewName()
 
     
     def clean(self):
@@ -382,25 +401,25 @@ class File():
         if results:
             return "tv"
 
-        #if (ep_showname, ep_number, ep_season, file):
-            #print "OK"
-        #else:
-            #"non ce"
-        #return (ep_showname, ep_number, ep_season, file)
         return "movie"
 
     def kind_checker(self):
         extensions = ['avi','mkv','mp4','mpg','mpeg','mov','wmv']
         for ext in extensions:
-            if os.path.splitext(self.clean_name)[1].strip('.').lower() == ext:
+            if self.extension.lstrip('.') == ext:
+                #print "ext2"
                 return self.tv_checker()
         return "novideo"
 
     def __init__(self,file):
-        self.name = file
+        results = os.path.splitext(file)
+        self.extension = results[1].lower()
+        self.name = results[0]
+        #print self.extension
         self.clean_name = self.clean()
         self.kind = self.kind_checker()
-        #print self.name, self.clean_name, self.ep_season
+        
+
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:

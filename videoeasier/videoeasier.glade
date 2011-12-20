@@ -258,6 +258,12 @@
                   <object class="GtkEntry" id="entryMask">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+                    <property name="tooltip_text" translatable="yes">%e episode number
+%n showname
+%s season
+%f filename
+%t title
+</property>
                     <property name="invisible_char">●</property>
                     <property name="invisible_char_set">True</property>
                     <property name="primary_icon_activatable">False</property>
@@ -327,7 +333,9 @@
                                             <property name="label" translatable="yes">Filename</property>
                                           </object>
                                           <packing>
+                                            <property name="x_options"></property>
                                             <property name="y_options"></property>
+                                            <property name="x_padding">5</property>
                                             <property name="y_padding">5</property>
                                           </packing>
                                         </child>
@@ -358,7 +366,9 @@
                                           <packing>
                                             <property name="top_attach">1</property>
                                             <property name="bottom_attach">2</property>
+                                            <property name="x_options"></property>
                                             <property name="y_options"></property>
+                                            <property name="x_padding">5</property>
                                             <property name="y_padding">5</property>
                                           </packing>
                                         </child>
@@ -391,6 +401,8 @@
                                           <packing>
                                             <property name="top_attach">2</property>
                                             <property name="bottom_attach">3</property>
+                                            <property name="x_options"></property>
+                                            <property name="x_padding">5</property>
                                             <property name="y_padding">5</property>
                                           </packing>
                                         </child>
@@ -417,7 +429,7 @@
                                       </object>
                                       <packing>
                                         <property name="expand">False</property>
-                                        <property name="fill">False</property>
+                                        <property name="fill">True</property>
                                         <property name="position">1</property>
                                       </packing>
                                     </child>
@@ -433,7 +445,9 @@
                                             <property name="label" translatable="yes">Episode</property>
                                           </object>
                                           <packing>
+                                            <property name="x_options"></property>
                                             <property name="y_options"></property>
+                                            <property name="x_padding">5</property>
                                             <property name="y_padding">5</property>
                                           </packing>
                                         </child>
@@ -466,7 +480,9 @@
                                           <packing>
                                             <property name="left_attach">2</property>
                                             <property name="right_attach">3</property>
+                                            <property name="x_options"></property>
                                             <property name="y_options"></property>
+                                            <property name="x_padding">5</property>
                                             <property name="y_padding">5</property>
                                           </packing>
                                         </child>
