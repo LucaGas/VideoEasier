@@ -35,7 +35,6 @@ class VideoEasier():
         self.treestoreDir.clear()
         dirList=os.listdir(os.getcwd())
         dircontents = []
-        #dircontents.append(['..'])
         for item in dirList:
             if item[0] != '.':
                 if os.path.isdir(item):
@@ -60,17 +59,6 @@ class VideoEasier():
                             pass
 
         
-    def load_DirParent(self,dir):
-        """Load dirs , no recursion"""
-        self.treestoreDir.clear()
-        parents = {}
-        for dir, dirs, files in os.walk(os.getcwd()):
-            for subdir in dirs:
-                if subdir.startswith('.'):
-                    dirs.remove(subdir)
-            for subdir in dirs:  
-                parents[os.path.join(dir, subdir)] = self.treestoreDir.append(parents.get(dir, None), [subdir])
-
     
     def on_filechooserbutton_current_folder_changed(self, widget, data=None):
         """Clear and refresh the TreeViews"""
@@ -116,6 +104,7 @@ class VideoEasier():
             
            
     def on_treeviewDir_cursor_changed(self, widget, data=None):
+
         treeviewDir_model, treeviewDir_iter = self.treeviewDir.get_selection().get_selected()
         self.file_fullpath = os.getcwd() + "/" + treeviewDir_model.get_value(treeviewDir_iter,0)
         
@@ -144,10 +133,9 @@ class VideoEasier():
     def on_treeviewFile_cursor_changed(self, widget, data=None):
         """When a file is selected with clear every entry first and the populate those entries with the TVObject attributes"""
         self.clear_Info_window ()
-        self.scrolledwindowInfoPre.hide_all()
         selection = self.treeviewFile.get_selection()
         tree_model, tree_iter = selection.get_selected()
-        #self.liststoreFile.foreach(self.cleanNewName)
+
         if tree_model.get_value(tree_iter,0):
             self.tv = TVObject(tree_model.get_value(tree_iter,2))
             self.entryFilename.set_text(self.tv.clean_name)
@@ -160,15 +148,7 @@ class VideoEasier():
 
     def cleanNewName (self, model, path, iter):
         self.liststoreFile.set_value(iter,3,"")
-    def pon_treeviewFile_cursor_changed(self, widget, data=None):
-        """When a file is selected with clear every entry first and the populate those entries with the TVObject attributes"""
-
-        self.clear_Info_window ()
-
-        selection = self.treeviewFile.get_selection()
-        tree_model, tree_iter = selection.get_selected()
-        self.file = File(tree_model.get_value(tree_iter,2))
-
+    
     def change_entryMask(self):
         if self.entryMask.get_text_length() > 0:
             entryMaskHelper = self.entryMask.get_text()
@@ -191,11 +171,10 @@ class VideoEasier():
             
             for item in self.subs:
                 entryMaskHelper  = re.sub(item[0],item[1],entryMaskHelper)
-            #print  filename
-            #print ext
             self.entryRename.set_text(entryMaskHelper + ext)
         else:
             self.entryRename.set_text(self.entryFilename.get_text())
+
     def on_entryMask_changed(self, widget, data=None):
         self.change_entryMask()
         self.imageBanner.set_visible(False)
@@ -258,7 +237,7 @@ class VideoEasier():
             self.liststoreFile.set_value(treeviewFile_iter,3,self.entryRename.get_text())
             #shutil.move(src, dst)
             print src,dst
-        #self.load_File (self.file_fullpath)
+
         
     def resize_image(self):
         """Resize the image based on the widget width, we create a scale factor from that to get the right height"""
@@ -293,8 +272,6 @@ class VideoEasier():
         self.treeviewFile = builder.get_object("treeviewFile")
         self.imageBanner = builder.get_object("imageBanner")
         self.scrolledwindowInfoTV = builder.get_object("scrolledwindowInfoTV")
-        self.scrolledwindowInfoMovie = builder.get_object("scrolledwindowInfoMovie")
-        self.scrolledwindowInfoPre = builder.get_object("scrolledwindowInfoPre")
         self.textviewOverview = builder.get_object("textviewOverview")
         self.textbufferOverview = builder.get_object("textbufferOverview")
         self.statusbar = builder.get_object("statusbar")
