@@ -91,37 +91,7 @@ class VideoEasier():
             #shutil.move(src, dst)
             if treeviewFile_model.get_value(treeviewFile_iter,3):
                 print src,dst
-            """self.treeviewFile.set_cursor(path)
-            selection = self.treeviewFile.get_selection()
-            tree_model, tree_iter = selection.get_selected()
-            if tree_model.get_value(tree_iter,0):
-                if self.checkbuttonBatchTVDB.get_active():
-                    print "ok"
-                    t = tvdb.tvdb_api.Tvdb()
-                    self.ep_object = t[self.tv.ep_showname][self.tv.ep_season][self.tv.ep_number]
-                    self.ep_title = self.ep_object['episodename'].strip()
-                    self.entryTitle.set_text(self.ep_title)
-                self.change_entryMask ()
-            
-                self.FillTest ()
-            else:
-                self.liststoreFile.set_value(tree_iter,3,'')"""
-    
-    def push_message(self, message):
-        buff = self.count
-        self.count = self.count + 1
-        self.statusbar.push(buff, message)
-        return
-
-    def pop_message(self, widget, message):
-        #buff = " Item %d" % self.count
-	#self.count = self.count + 1
-        #self.status_bar.push(data, buff)
-        pass
-    
-    def refresh_view(self):
-        pass
-            
+  
            
     def on_treeviewDir_cursor_changed(self, widget, data=None):
 
@@ -206,6 +176,13 @@ class VideoEasier():
         s = results[0]
         NewName = s + '.' + self.entryTitle.get_text().replace(' ','.') + extension
         return NewName.replace(' ','') 
+
+    def on_togglebuttonShowInfo_toggled(self, widget, data=None):  
+        if self.togglebuttonShowInfo.get_active():
+            self.frameInfo.set_visible(True)
+        else:
+            self.frameInfo.set_visible(False)
+
         
     def on_buttonReset_clicked(self, widget, data=None):  
         self.filechooserbutton.set_current_folder(os.getcwd ())
@@ -216,7 +193,6 @@ class VideoEasier():
     def on_buttonTVDB_clicked(self, widget, data=None):
         """Whe the TVDB button is clicked we create the tvdb object, fill the title entry, fill the overview /
          and display banner"""
-        self.push_message('doing the tvdb stuff')
         t = tvdb.tvdb_api.Tvdb(banners = self.checkbuttonBanner.get_active())
         self.ep_object = t[self.tv.ep_showname][self.tv.ep_season][self.tv.ep_number]
         self.ep_title = self.ep_object['episodename'].strip()
@@ -244,7 +220,6 @@ class VideoEasier():
         tree_model, tree_iter = selection.get_selected()
         if tree_model.get_value(tree_iter,0):
             if self.checkbuttonBatchTVDB.get_active():
-                print "ok"
                 t = tvdb.tvdb_api.Tvdb()
                 self.ep_object = t[self.tv.ep_showname][self.tv.ep_season][self.tv.ep_number]
                 self.ep_title = self.ep_object['episodename'].strip()
@@ -293,6 +268,8 @@ class VideoEasier():
         self.checkbuttonBanner = builder.get_object("checkbuttonBanner")
         self.checkbuttonBatchTVDB = builder.get_object("checkbuttonBatchTVDB")
         self.labelMaskRoot = builder.get_object("labelMaskRoot")
+        self.frameInfo = builder.get_object("frameInfo")
+        self.togglebuttonShowInfo = builder.get_object("togglebuttonShowInfo")
 
         self.entryFilenameMovie = builder.get_object("entryFilenameMovie")
         builder.connect_signals(self)
