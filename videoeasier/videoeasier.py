@@ -66,26 +66,46 @@ class VideoEasier():
         self.load_Dir(self.filechooserbutton.get_current_folder())
         self.liststoreFile.clear()
         self.load_File (self.filechooserbutton.get_current_folder())
-        self.labelMaskRoot.set_text(os.getcwd())       
+        self.labelMaskRoot.set_text(os.getcwd() + "/")       
+
+    def on_buttonTestSelected_clicked(self, widget, data=None):
+        self.liststoreFile.foreach(self.FillTest)
 
     def on_buttonBatchRename_clicked(self, widget, data=None):
         self.liststoreFile.foreach(self.BatchRename)
 
     def BatchRename (self, model, path, iter):
-            self.treeviewFile.set_cursor(path)
+        self.treeviewFile.set_cursor(path)
+        self.file_fullpath = os.getcwd()
+        if self.treeviewDir.get_cursor()[0]:
+            selection = self.treeviewDir.get_selection()
+            treeviewDir_model, treeviewDir_iter = selection.get_selected()
+            self.file_fullpath = self.file_fullpath + "/" + treeviewDir_model.get_value(treeviewDir_iter,0)
+
+        if self.treeviewFile.get_cursor()[0]:
+            selection = self.treeviewFile.get_selection()
+            treeviewFile_model, treeviewFile_iter = selection.get_selected()
+            src = self.file_fullpath + '/' + treeviewFile_model.get_value(treeviewFile_iter,2)
+            dst = self.file_fullpath + '/' + treeviewFile_model.get_value(treeviewFile_iter,3)
+            #self.liststoreFile.set_value(treeviewFile_iter,3,self.entryRename.get_text())
+            #shutil.move(src, dst)
+            if treeviewFile_model.get_value(treeviewFile_iter,3):
+                print src,dst
+            """self.treeviewFile.set_cursor(path)
             selection = self.treeviewFile.get_selection()
             tree_model, tree_iter = selection.get_selected()
             if tree_model.get_value(tree_iter,0):
                 if self.checkbuttonBatchTVDB.get_active():
+                    print "ok"
                     t = tvdb.tvdb_api.Tvdb()
                     self.ep_object = t[self.tv.ep_showname][self.tv.ep_season][self.tv.ep_number]
                     self.ep_title = self.ep_object['episodename'].strip()
                     self.entryTitle.set_text(self.ep_title)
                 self.change_entryMask ()
             
-                self.Rename ()
+                self.FillTest ()
             else:
-                self.liststoreFile.set_value(tree_iter,3,'')
+                self.liststoreFile.set_value(tree_iter,3,'')"""
     
     def push_message(self, message):
         buff = self.count
@@ -128,7 +148,7 @@ class VideoEasier():
         self.entryEpisode.set_text('')
         self.entrySeason.set_text('') 
         self.entryRename.set_text('')
-        
+        self.imageBanner.set_visible(False)
     
     def on_treeviewFile_cursor_changed(self, widget, data=None):
         """When a file is selected with clear every entry first and the populate those entries with the TVObject attributes"""
@@ -144,7 +164,7 @@ class VideoEasier():
             self.entrySeason.set_text(str(self.tv.ep_season))
             self.scrolledwindowInfoTV.set_visible(True)
             self.change_entryMask()
-            self.liststoreFile.set_value(tree_iter,3,self.entryRename.get_text())
+            #self.liststoreFile.set_value(tree_iter,3,self.entryRename.get_text())
 
     def cleanNewName (self, model, path, iter):
         self.liststoreFile.set_value(iter,3,"")
@@ -217,28 +237,23 @@ class VideoEasier():
         self.textbufferOverview.set_text(self.ep_object['overview'])
         self.textviewOverview.set_buffer(self.textbufferOverview)
 
-    def on_buttonRename_clicked(self, widget, data=None):
-        """Rename files"""
-
-        self.Rename ()
-
-    def Rename(self):
-        self.file_fullpath = os.getcwd()
-        if self.treeviewDir.get_cursor()[0]:
-            selection = self.treeviewDir.get_selection()
-            treeviewDir_model, treeviewDir_iter = selection.get_selected()
-            self.file_fullpath = self.file_fullpath + "/" + treeviewDir_model.get_value(treeviewDir_iter,0)
-
-        if self.treeviewFile.get_cursor()[0]:
-            selection = self.treeviewFile.get_selection()
-            treeviewFile_model, treeviewFile_iter = selection.get_selected()
-            src = self.file_fullpath + '/' + treeviewFile_model.get_value(treeviewFile_iter,2)
-            dst = self.file_fullpath + '/' + self.entryRename.get_text()
-            self.liststoreFile.set_value(treeviewFile_iter,3,self.entryRename.get_text())
-            #shutil.move(src, dst)
-            print src,dst
-
+         
+    def FillTest(self, model, path, iter):
+        self.treeviewFile.set_cursor(path)
+        selection = self.treeviewFile.get_selection()
+        tree_model, tree_iter = selection.get_selected()
+        if tree_model.get_value(tree_iter,0):
+            if self.checkbuttonBatchTVDB.get_active():
+                print "ok"
+                t = tvdb.tvdb_api.Tvdb()
+                self.ep_object = t[self.tv.ep_showname][self.tv.ep_season][self.tv.ep_number]
+                self.ep_title = self.ep_object['episodename'].strip()
+                self.entryTitle.set_text(self.ep_title)
+            self.change_entryMask ()
+            self.liststoreFile.set_value(tree_iter,3,self.entryRename.get_text())
         
+
+            
     def resize_image(self):
         """Resize the image based on the widget width, we create a scale factor from that to get the right height"""
         scale_factor = float(self.scrolledwindowInfoTV.get_allocation().width) / float(self.image_loader.get_pixbuf().get_width())
