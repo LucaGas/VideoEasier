@@ -74,8 +74,13 @@ class VideoEasier():
     def on_buttonBatchRename_clicked(self, widget, data=None):
         self.liststoreFile.foreach(self.BatchRename)
 
-    def BatchRename (self, model, path, iter):
-        self.treeviewFile.set_cursor(path)
+    def on_buttonRename_clicked(self, widget, data=None):
+        if self.get_src_and_dst()[0]:
+            print self.get_src_and_dst()[0], self.file_fullpath + "/" + self.entryFilename.get_text()
+            shutil.move(self.get_src_and_dst()[0], self.file_fullpath + "/" + self.entryFilename.get_text())
+            self.load_File (self.get_src_and_dst()[2])
+
+    def get_src_and_dst (self):
         self.file_fullpath = os.getcwd()
         if self.treeviewDir.get_cursor()[0]:
             selection = self.treeviewDir.get_selection()
@@ -86,11 +91,17 @@ class VideoEasier():
             selection = self.treeviewFile.get_selection()
             treeviewFile_model, treeviewFile_iter = selection.get_selected()
             src = self.file_fullpath + '/' + treeviewFile_model.get_value(treeviewFile_iter,2)
-            dst = self.file_fullpath + '/' + treeviewFile_model.get_value(treeviewFile_iter,3)
+            if treeviewFile_model.get_value(treeviewFile_iter,3):
+                dst = self.file_fullpath + '/' + treeviewFile_model.get_value(treeviewFile_iter,3)
             #self.liststoreFile.set_value(treeviewFile_iter,3,self.entryRename.get_text())
             #shutil.move(src, dst)
-            if treeviewFile_model.get_value(treeviewFile_iter,3):
-                print src,dst
+                return src,dst,self.file_fullpath
+        return src,None,self.file_fullpath
+        
+    def BatchRename (self, model, path, iter):
+        self.treeviewFile.set_cursor(path)
+        if self.get_src_and_dst()[1]:
+                    print self.get_src_and_dst()[0],self.get_src_and_dst()[1]
   
            
     def on_treeviewDir_cursor_changed(self, widget, data=None):
