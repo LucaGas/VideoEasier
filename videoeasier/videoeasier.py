@@ -55,7 +55,7 @@ class VideoEasier():
                         self.liststoreFile.append([1,0,item.name+ item.extension,""])
                     else:
                         if item.kind_checker() == "movie":
-                            self.liststoreFile.append([0,0,item.name,""])
+                            self.liststoreFile.append([0,1,item.name+ item.extension,""])
                             pass
 
         
@@ -77,7 +77,13 @@ class VideoEasier():
     def on_buttonRename_clicked(self, widget, data=None):
         if self.get_src_and_dst()[0]:
             print self.get_src_and_dst()[0], self.file_fullpath + "/" + self.entryFilename.get_text()
-            shutil.move(self.get_src_and_dst()[0], self.file_fullpath + "/" + self.entryFilename.get_text())
+            #shutil.move(self.get_src_and_dst()[0], self.file_fullpath + "/" + self.entryFilename.get_text())
+            self.load_File (self.get_src_and_dst()[2])
+
+    def on_buttonRenameMovie_clicked(self, widget, data=None):
+        if self.get_src_and_dst()[0]:
+            print self.get_src_and_dst()[0], self.file_fullpath + "/" + self.entryFilenameMovie.get_text()
+            shutil.move(self.get_src_and_dst()[0], self.file_fullpath + "/" + self.entryFilenameMovie.get_text())
             self.load_File (self.get_src_and_dst()[2])
 
     def get_src_and_dst (self):
@@ -89,6 +95,15 @@ class VideoEasier():
 
         if self.treeviewFile.get_cursor()[0]:
             selection = self.treeviewFile.get_selection()
+            treeviewFile_model, treeviewFile_iter = selection.get_selected()
+            src = self.file_fullpath + '/' + treeviewFile_model.get_value(treeviewFile_iter,2)
+            if treeviewFile_model.get_value(treeviewFile_iter,3):
+                dst = self.file_fullpath + '/' + treeviewFile_model.get_value(treeviewFile_iter,3)
+            #self.liststoreFile.set_value(treeviewFile_iter,3,self.entryRename.get_text())
+            #shutil.move(src, dst)
+                return src,dst,self.file_fullpath
+        if self.treeviewFileMovie.get_cursor()[0]:
+            selection = self.treeviewFileMovie.get_selection()
             treeviewFile_model, treeviewFile_iter = selection.get_selected()
             src = self.file_fullpath + '/' + treeviewFile_model.get_value(treeviewFile_iter,2)
             if treeviewFile_model.get_value(treeviewFile_iter,3):
@@ -147,6 +162,15 @@ class VideoEasier():
             self.change_entryMask()
             #self.liststoreFile.set_value(tree_iter,3,self.entryRename.get_text())
 
+    def on_treeviewFileMovie_cursor_changed(self, widget, data=None):
+        """When a file is selected with clear every entry first and the populate those entries with the TVObject attributes"""
+        self.clear_Info_window ()
+        selection = self.treeviewFileMovie.get_selection()
+        tree_model, tree_iter = selection.get_selected()
+
+        if tree_model.get_value(tree_iter,1):
+            self.entryFilenameMovie.set_text(tree_model.get_value(tree_iter,2))
+
     def cleanNewName (self, model, path, iter):
         self.liststoreFile.set_value(iter,3,"")
     
@@ -190,9 +214,26 @@ class VideoEasier():
 
     def on_togglebuttonShowInfo_toggled(self, widget, data=None):  
         if self.togglebuttonShowInfo.get_active():
-            self.frameInfo.set_visible(True)
+            self.hboxInfo.set_visible(True)
+            if self.Notebook.get_current_page() == 0:
+                self.frameInfo.set_visible(True)
+            else:
+                self.frameInfoMovie.set_visible(True)
         else:
+            self.hboxInfo.set_visible(False)
             self.frameInfo.set_visible(False)
+            self.frameInfoMovie.set_visible(False)
+
+
+    def on_notebook_switch_page(self, widget, page, data=None):  
+        if self.togglebuttonShowInfo.get_active():
+            self.frameInfo.set_visible(False)
+            self.frameInfoMovie.set_visible(False)   
+            if self.Notebook.get_current_page() == 1:
+                self.frameInfo.set_visible(True)
+            else:
+                self.frameInfoMovie.set_visible(True)
+
 
         
     def on_buttonReset_clicked(self, widget, data=None):  
@@ -260,6 +301,7 @@ class VideoEasier():
         
         self.window = builder.get_object("mainWindow")
         self.entryFilename = builder.get_object("entryFilename")
+        self.entryFilenameMovie = builder.get_object("entryFilenameMovie")
         self.entryShowname = builder.get_object("entryShowname")
         self.entryEpisode = builder.get_object("entryEpisode")
         self.entrySeason = builder.get_object("entrySeason")
@@ -271,6 +313,7 @@ class VideoEasier():
         self.treeviewDir = builder.get_object("treeviewDir")
         self.liststoreFile = builder.get_object("liststoreFile")
         self.treeviewFile = builder.get_object("treeviewFile")
+        self.treeviewFileMovie = builder.get_object("treeviewFileMovie")
         self.imageBanner = builder.get_object("imageBanner")
         self.scrolledwindowInfoTV = builder.get_object("scrolledwindowInfoTV")
         self.textviewOverview = builder.get_object("textviewOverview")
@@ -280,7 +323,10 @@ class VideoEasier():
         self.checkbuttonBatchTVDB = builder.get_object("checkbuttonBatchTVDB")
         self.labelMaskRoot = builder.get_object("labelMaskRoot")
         self.frameInfo = builder.get_object("frameInfo")
+        self.frameInfoMovie = builder.get_object("frameInfoMovie")
         self.togglebuttonShowInfo = builder.get_object("togglebuttonShowInfo")
+        self.Notebook = builder.get_object("notebook")
+        self.hboxInfo = builder.get_object("hboxInfo")
 
         self.entryFilenameMovie = builder.get_object("entryFilenameMovie")
         builder.connect_signals(self)
